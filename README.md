@@ -1,30 +1,18 @@
-# The Early Ruskin Manuscripts, 1826–1842
+# The Crawford Project
 
-[https://erm.selu.edu/](https://erm.selu.edu)
+## Project Site
 
-## About:
-
-The Early Ruskin Manuscripts, 1826–1842 is a project of Southeastern Louisiana University and Humanities Online, both under the direction of the university's Department of English.
-
-All commentary in ERM, including apparatuses, glosses, notes transcripts, and other editorial treatments of the manuscripts is © by David C. Hanson.
-
-## Developer notes
-
-The developer notes can be found [here](developer_notes.md)
-
-### Staff and Support:
-
-[http://erm.selu.edu/webpages/staff](http://erm.selu.edu/webpages/staff)
-
-### Legal:
-
-[https://erm.selu.edu/webpages/legal](https://erm.selu.edu/webpages/legal)
+- Local development: `http://crawford.local:8080/`
 
 ---
 
-# Developer Overview
+## About
 
-### Project Directory Structure:
+The Crawford Project is built on the same technical framework used in earlier manuscript projects, but it operates on its own dataset and local configuration.
+
+---
+
+## Project Directory Structure
 
 ```
 _xml
@@ -43,35 +31,26 @@ _xml
 │   │   └── staff
 ```
 
-### Transformed Folders:
+### Transformed Folders
 
 - **To PHP:** Corpuses, Figures, Witnesses
 - **To HTML:** Apparatuses, Glosses, Letters, Notes, Webpages
 
-### XML to HTML/PHP Transformation
+---
+
+## XML to HTML/PHP Transformation
 
 Use **Oxygen XML Editor**:
 
-1. Open the `ruskin.xpr` file.
-2. Right-click on file/folder → Transform → Configure transformation scenario.
+1. Open the `crawford.xpr` file.
+2. Right-click on a file or folder → **Transform → Configure transformation scenario**.
 3. Check `Generate html` for HTML files and `Generate (global)` for PHP files.
 
 ---
 
-# Local Dev Setup @ ruskin.local:8080
+## Local Dev Setup @ crawford.local:8080
 
-Refer to the documentation [here](https://docs.google.com/document/d/1GKZI8TN6Q9kYZ47mn-RnC5A3dOmvQcf8OejtovxQUng/edit?usp=sharing) for detailed instructions. **ONLY CONTINUE ONCE YOU HAVE GONE THROUGH THE DOCUMENTATION LINK**. Some steps may be repeated in this readme file.
-
-### Useful Brew Commands:
-
-```sh
-brew services list
-brew services stop --all
-brew services start --all
-brew services restart --all
-```
-
-### Hosts File Update:
+### Hosts File Update
 
 ```sh
 sudo vim /etc/hosts
@@ -80,7 +59,7 @@ sudo vim /etc/hosts
 Add:
 
 ```
-127.0.0.1       ruskin.local
+127.0.0.1       crawford.local
 ```
 
 ### NGINX Config:
@@ -89,7 +68,7 @@ For Apple Silicon:
 
 ```sh
 cd /opt/homebrew/etc/nginx/servers
-open -a TextEdit ruskin.local.conf
+open -a TextEdit crawford.local.conf
 ```
 
 Paste:
@@ -97,19 +76,19 @@ Paste:
 ```nginx
 server {
     listen 8080;
-    server_name ruskin.local;
-    root /Users/userselu/Ruskin;
+    server_name crawford.local;
+    root /Users/userselu/Crawford-Collection;
     client_max_body_size 210M;
     autoindex on;
     index index.php index.html index.htm;
     charset utf-8;
 
-    # Set default content type once per server block
+    # Default content type
     default_type text/html;
 
     # Favicon request
     location = /favicon.ico {
-        alias /Users/userselu/Ruskin/_Resources/images/ruskin_icon.png;
+        alias /Users/userselu/Crawford-Collection/_Resources/images/crawford_icon.png;
     }
 
     # HTML files - with highlighting
@@ -120,7 +99,7 @@ server {
         sub_filter_once off;
 
         # Add icon and site styles before <main>
-        sub_filter '<main' '<link rel="icon" type="image/png" href="/_Resources/images/ruskin_icon.png"><link rel="stylesheet" href="/_Resources/css_styles/site_styles.css"><main';
+        sub_filter '<main' '<link rel="icon" type="image/png" href="/_Resources/images/crawford_icon.png"><link rel="stylesheet" href="/_Resources/css_styles/site_styles.css"><main';
 
         # Add highlighting functionality before </body>
         sub_filter '</body>' '<script src="/_Resources/js/page-highlighter.js"></script></body>';
@@ -142,7 +121,7 @@ server {
         sub_filter_once off;
 
         # Add icon in PHP header
-        sub_filter '<?php' '<?php echo \'<link rel="icon" type="image/png" href="/_Resources/images/ruskin_icon.png">\';';
+        sub_filter '<?php' '<?php echo \'<link rel="icon" type="image/png" href="/_Resources/images/crawford_icon.png">\';';
 
         # Add highlighting functionality before </body>
         sub_filter '</body>' '<script src="/_Resources/js/page-highlighter.js"></script></body>';
@@ -155,7 +134,7 @@ server {
 
     # Fonts with CORS
     location ~* ^/_Resources/fonts/(.+\.(woff|woff2|eot|ttf|otf))$ {
-        alias /Users/userselu/Ruskin/_Resources/fonts/$1;
+        alias /Users/userselu/Crawford-Collection/_Resources/fonts/$1;
         access_log off;
         add_header Access-Control-Allow-Origin *;
         default_type application/font-woff;
@@ -163,7 +142,7 @@ server {
 
     # _Resources folder
     location /_Resources/ {
-        alias /Users/userselu/Ruskin/_Resources/;
+        alias /Users/userselu/Crawford-Collection/_Resources/;
         autoindex on;
     }
 
@@ -174,18 +153,18 @@ server {
 
     # Search routes (no highlighting needed)
     location = /search.html {
-        root /Users/userselu/Ruskin/src/search_new;
+        root /Users/userselu/Crawford-Collection/src/search_new;
         try_files $uri =404;
     }
 
     location = /search_style.css {
-        root /Users/userselu/Ruskin/src/search_new;
+        root /Users/userselu/Crawford-Collection/src/search_new;
         default_type text/css;
         try_files $uri =404;
     }
 
     location = /search_script.js {
-        root /Users/userselu/Ruskin/src/search_new;
+        root /Users/userselu/Crawford-Collection/src/search_new;
         default_type application/javascript;
         try_files $uri =404;
     }
@@ -204,7 +183,7 @@ server {
         fastcgi_param DOCUMENT_ROOT $document_root;
     }
 
-    # HTML Routing for main folders - with highlighting for this specific pattern
+    # HTML Routing for main folders - with highlighting
     location ~* ^/(apparatuses|glosses|letters|notes|webpages)/([^/]+)(\.html)?$ {
         try_files /gen/_xml/_Completed/$1/$2.html
                   /gen/_xml/$1/$2.html
@@ -213,7 +192,7 @@ server {
         sub_filter_once off;
 
         # Add icon and site styles before <main>
-        sub_filter '<main' '<link rel="icon" type="image/png" href="/_Resources/images/ruskin_icon.png"><link rel="stylesheet" href="/_Resources/css_styles/site_styles.css"><main';
+        sub_filter '<main' '<link rel="icon" type="image/png" href="/_Resources/images/crawford_icon.png"><link rel="stylesheet" href="/_Resources/css_styles/site_styles.css"><main';
 
         # Add highlighting functionality - needed for URLs without .html extension
         sub_filter '</body>' '<script src="/_Resources/js/page-highlighter.js"></script></body>';
